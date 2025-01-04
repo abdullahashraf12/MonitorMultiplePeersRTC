@@ -1,0 +1,745 @@
+﻿
+<style>
+    .containers {
+        display: grid;
+        grid-gap: 5px;
+        grid-template-columns: repeat(auto-fit, 1fr);
+        grid-template-rows: repeat(auto-fit, 300px);
+    }
+
+    .container {
+        display: flex;
+    }
+
+    .vid {
+        flex: 0 1 auto;
+        height: 400px;
+    }
+
+    .settings {
+        background-color: #4CAF50;
+        border: none;
+        color: white;
+        padding: 5px 10px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+        margin: 2px 2px;
+        cursor: pointer;
+    }
+
+    body {
+        margin: 0;
+        padding: 0;
+    }
+
+    #alert {
+        display: none;
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        padding: 20px;
+        background-color: white;
+        border: 1px solid #ddd;
+        z-index: 1001; /* Ensure it is above the shadow overlay */
+    }
+
+    .modal-btn {
+        padding: 10px 20px;
+        font-size: 16px;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        margin: 0 10px;
+        transition: background-color 0.3s;
+    }
+
+    .yes {
+        background-color: #4CAF50;
+        color: white;
+    }
+
+    .no {
+        background-color: #f44336;
+        color: white;
+    }
+
+    .modal-btn:hover {
+        background-color: #333;
+        color: #fff;
+    }
+
+    #overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.5);
+        z-index: 1000; /* Below the modal but above the content */
+    }
+</style>
+@{
+    var userEmail = ViewBag.UserEmail as string;
+    var welcomeMessage = ViewBag.WelcomeMessage as string;
+    var Token = ViewBag.Token as string;
+    var UniqueNumber = ViewBag.UniqueNumber as string;
+}
+
+<!-- Overlay -->
+<div id="overlay"></div>
+
+<!-- Input Group -->
+<div>
+    <div class="input-group mb-3" style="max-width: 100%; display: flex; align-items: center; gap: 10px;">
+        <select class="form-select" id="selectionType" aria-label="Select type" style="background-color: white; color: green; border: 2px solid #006400; width: 150px; max-width:150px">
+            <option value="None" selected style="background-color:red;">None</option>
+            <option value="ClientId" >Join by Client ID</option>
+            <option value="GroupNo">Join by Group No</option>
+        </select>
+        <input type="text" id="numberInput" class="form-control" placeholder="Client Number or Group ID" aria-label="Client Account" aria-describedby="basic-addon2" style="max-width: 300px;">
+        <button type="button" class="btn" id="GetIdButton" style="color:white; background-color:red; border-radius:10%;">Submit</button>
+        <button type="button" class="btn" id="Start_Screen" style="color:white; background-color:forestgreen; border-radius:10%;">Start Screen</button>
+        @* <button type="button" class="btn" id="Create_Group" style="color:white; background-color:blue; border-radius:10%;">Create Group Only For You</button> *@
+    </div>
+
+</div>
+ <script>
+        document.getElementById('numberInput').addEventListener('input', function(event) {
+      // Allow only digits
+      this.value = this.value.replace(/[^0-9]/g, '');
+    });
+
+
+     </script>
+<!-- Alert Box -->
+<div id="alert">
+    <p>Are You Sure You Want To Access This Group / Client ?</p>
+    <div class="modal-buttons" style="text-align: center;">
+        <button id="yesButton" class="modal-btn yes">Yes</button>
+        <button id="noButton" class="modal-btn no">No</button>
+    </div>
+</div>
+
+
+
+
+<div style="height:50px; margin-left:10px; text-align:center;">
+    <label for="MyUniqueNumber">
+        <h4 style="display: inline;">Your Unique Number Is:</h4>
+        <h2 style="display: inline; color: red; font-weight: bold;" id="MyUniqueNumber">@UniqueNumber</h2>
+        @* <h4 style="display: inline;" id="GroupNoHidden" hidden>Your Group Number Is:</h4> *@
+        @* <h2 style="display: inline; color: red; font-weight: bold;" id="GroupNo"></h2> *@
+    </label>
+    <br>
+
+</div>
+
+
+@* <div id="videos" style="text-align:center; align-content:center; align-items:center;"> *@
+@*     <video id="localVideo" data-currentclient=" @userEmail" class="vid" autoplay muted></video> *@
+@* </div> *@
+
+
+
+
+
+
+<div id="videos" class="container">
+    <video id="localVideo" data-token=" @Token" data-currentclient=" @userEmail" class="vid" autoplay muted></video>
+</div>
+
+
+
+
+
+
+
+
+<br />
+<div style="display:block">
+ 
+</div>
+
+<script src="~/js/simplepeer.min.js"></script>
+
+<script>
+    $(document).ready(function () {
+
+     $("#Start_Screen").on("click", function () {
+        // Start the camera and display media on the page
+    navigator.mediaDevices.getDisplayMedia({ video: true, audio: true }).then(stream => {
+        console.log('Received local stream');
+       
+        
+        // initializeWebSocket($("#MyUniqueNumber").html()  ,  $("#MyUniqueNumber").html());
+       
+        
+        initializeWebSocket(''  ,  '');
+
+        // Attach the local stream to a video element
+        localVideo.srcObject = stream;
+        localMediaStream = stream;
+        
+    }).catch(e => alert(`getusermedia error ${e.name}`));
+
+    });
+
+    // Handle GetIdButton click
+    $("#GetIdButton").on("click", function () {
+        // Show the overlay and alert box
+        $("#overlay").fadeIn(100);
+        $("#alert").fadeIn(100);
+    });
+    // $("#Create_Group").on("click", function () {
+    //       initializeWebSocket( '',  '');
+
+    // });
+    
+    // Handle Yes button click
+    $("#yesButton").on("click", function () {
+        // Hide the overlay and alert box
+         $("#overlay").fadeOut(200);
+         $("#alert").fadeOut(200);
+    if ($("#numberInput").val().trim() !== "") {
+
+            var group_or_client = $("#selectionType").val();
+            if(group_or_client==="ClientId") {
+              initializeWebSocket(''  ,  $("#numberInput").val());
+
+            }else if (group_or_client==="GroupNo"){
+              initializeWebSocket($("#numberInput").val()  ,  '');
+
+            }
+    }else{
+    //     if ($("#selectionType").val() == "None" ||  $("#numberInput").val() ) {
+    //         alert("Please Input Client Or Group To Connect");
+    //           initializeWebSocket($("#numberInput").val() ,  '');
+    // }else{
+    //      initializeWebSocket($("#numberInput").val() ,  '');
+
+    // }
+   
+        console.log("You clicked Yes!");
+    }
+    });
+
+    // Handle No button click
+    $("#noButton").on("click", function () {
+        // Hide the overlay and alert box
+        $("#overlay").fadeOut(200);
+        $("#alert").fadeOut(200);
+        console.log("You clicked No!");
+    });
+
+
+    /**
+     * WebSocket client for communication between peers
+     */
+    let webSocket; // WebSocket connection object
+    /**
+     * The media stream object for local media (audio/video)
+     */
+    let localMediaStream = null;
+    /**
+     * Dictionary to store peer connections, indexed by socket ID
+     */
+    let peerConnections = {};
+    /**
+     * StringBuilder for incomplete JSON messages (in case messages are fragmented)
+     */
+    let messageBuffer = "";
+
+    // Redirect to HTTPS if not already on HTTPS
+    if (location.href.substr(0, 5) !== 'https')
+        location.href = 'https' + location.href.substr(4, location.href.length - 4);
+
+    //////////// CONFIGURATION //////////////////
+
+    /**
+     * Configuration for the WebRTC peer connection, including ICE servers
+     */
+    const rtcConfiguration = {
+        "iceServers": [
+            { urls: "stuns:stun.monitortc.com:3478", username: "secret", credential: "9013" },
+            { urls: "turns:turn.monitortc.com:5349", username: "secret", credential: "9013" }
+        ]
+    };
+
+    /**
+     * Constraints for user media (audio/video)
+     */
+    let mediaConstraints = {
+        audio: true,
+        video: {
+            width: { max: 300 },
+            height: { max: 300 }
+        }
+    };
+
+    // Prefer the front camera if available
+    mediaConstraints.video.facingMode = { ideal: "user" };
+
+
+                     
+
+    
+    /**
+     * Safely converts a JavaScript object to a JSON string
+     *  {Object} data - The data to be converted to JSON
+     *  {string|null} - The JSON string or null if conversion failed
+     */
+    function safeJSONStringify(data) {
+        try {
+            return JSON.stringify(data);
+        } catch (error) {
+            console.error("Invalid JSON data:", data, error);
+            return null;
+        }
+    }
+
+    /**
+     * Sends a message through the WebSocket connection
+     *  {WebSocket} socket - The WebSocket object to send the message through
+     *  {Object} data - The data to be sent
+     */
+    function sendMessage(socket, data) {
+        const jsonData = safeJSONStringify(data);
+        console.log("Sending Message");
+        console.log(jsonData)
+
+        if (jsonData) {
+            socket.send(jsonData);
+           console.log("Message Sent")
+
+        } else {
+            console.error("Failed to send invalid JSON data:", data);
+        }
+    }
+
+    /**
+     * Initializes the WebSocket connection
+     */
+
+    function initializeWebSocket(groupNo,client_id) {
+        // Connect to the WebSocket server
+            var token = $('#localVideo').data('token');
+
+             webSocket = new WebSocket("wss://monitortc.com:443/webrtcpeers?ScreenShareFrom=ViaBrowser&groupNo="+groupNo+"&Token="+token+"&ClientId="+client_id);
+
+        // Handle WebSocket connection open event
+        webSocket.onopen = () => {
+            console.log("WebSocket connection established");
+        };
+
+        // Handle incoming WebSocket messages
+        webSocket.onmessage = (event) => {
+            try {
+                // Append incoming data to the buffer
+                messageBuffer += event.data;
+
+                // Attempt to parse the buffer as JSON
+                try{
+                const parsedData = tryParseJSON(messageBuffer);
+                    if (parsedData) {
+                        // Handle the complete JSON message
+                        processMessage(parsedData);
+                        // Clear the buffer after successful parsing
+                        messageBuffer = "";
+                    }
+                }catch(err){
+                                processMessage(cleanAndParseMessage(messageBuffer));
+                }
+                   
+                
+            } catch (error) {
+                console.error("Error processing WebSocket message:", event.data, error);
+            }
+        };
+
+        // Handle WebSocket connection close event
+            webSocket.onclose = (event) => {
+            console.log("WebSocket connection closed");
+            // Remove all peer connections
+            for (let socketId in peerConnections) {
+                 removePeer(socketId);
+                     // removePeer
+                 // sendMessage()
+                // webSocket.send()
+            }
+            if (event.code === 1000 && event.reason === "Closing due to Client Already Exists in Socket Disconnected") {
+                    remove_local();
+                console.log("Client was disconnected because it already exists.");
+            // Perform specific actions, like redirecting the user or displaying a message.
+            } else if (event.code === 1006){
+                console.log("Connection was closed abnormally. Possible network issue")
+            }
+            else{
+                console.log(`Connection closed with code ${event.code} and reason ${event.reason}`)
+            }
+
+        };
+
+        // Handle WebSocket error event
+        webSocket.onerror = (error) => {
+            console.error("WebSocket error:", error);
+        };
+    }
+
+    /**
+     * Attempts to parse a string as JSON
+     *  {string} data - The data to be parsed
+     *  {Object|null} - The parsed object or null if parsing failed
+     */
+    function tryParseJSON(data) {
+        try {
+            return JSON.parse(data);
+        } catch (e) {
+            // If parsing fails, return null
+            return null;
+        }
+    }
+
+    /**
+     * Adds a new peer connection to the list
+     *  {string} socketId - The socket ID of the new peer
+     *  {boolean} isInitiator - Whether this peer is the initiator of the connection
+     */
+    function addPeer(socketId, isInitiator) {
+        peerConnections[socketId] = new SimplePeer({
+            initiator: isInitiator,
+            stream: localMediaStream,
+            config: rtcConfiguration,
+        });
+        console.log("email=> "+socketId+" , Is Initiator=> "+isInitiator.toString())
+        peerConnections[socketId].on("signal", (data) => {
+            sendMessage(webSocket, {
+                type: "signal",
+                signal: data,
+                socket_id: socketId,
+            });
+        });
+
+        peerConnections[socketId].on("stream", (stream) => {
+            let newVideoElement = document.createElement("video");
+            newVideoElement.srcObject = stream;
+            newVideoElement.id = "client_"+socketId.toString();
+                    newVideoElement.controls = false;
+
+            newVideoElement.playsinline = false;
+            newVideoElement.autoplay = true;
+            newVideoElement.className = "vid";
+
+            videos.appendChild(newVideoElement);
+
+        });
+    }
+
+    /**
+     * Processes an incoming message based on its type
+     *  {Object} data - The parsed message data
+     */
+
+        function tryParseJSON(jsonString) {
+        try {
+            return JSON.parse(jsonString);
+        } catch (e) {
+            return null;
+        }
+    }
+
+    function cleanAndParseMessage(messageBuffer) {
+        try {
+            // Parse the outer message buffer
+            const message = JSON.parse(messageBuffer);
+
+            // Check if the 'signal' key exists and is a string
+            if (typeof message.signal === "string") {
+                // Clean and parse the 'signal' JSON
+                const cleanedSignal = message.signal.replace(/\\r\\n/g, "").replace(/\\"/g, '"');
+                const parsedSignal = tryParseJSON(cleanedSignal);
+
+                if (parsedSignal) {
+                    message.signal = parsedSignal; // Replace the string with the parsed object
+                } else {
+                    console.warn("Signal could not be parsed as JSON.");
+                }
+            }
+
+            return message;
+        } catch (e) {
+            console.error("Failed to parse messageBuffer:", e);
+            return null;
+        }
+    }
+
+
+          function parseBoolean(str) {
+        if (typeof str !== 'string') {
+            // Return false or handle invalid input as needed
+            console.log("string is => "+str)
+            console.error('Invalid input: Expected a string');
+            return false;
+        }
+        return str.toLowerCase() === 'true';
+    }
+
+
+        function processMessage(data) {
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+            console.log(data);
+
+            switch (data.type) {
+                case "initReceive":
+                    console.log("INIT RECEIVE " + data.socketId);
+                    addPeer(data.socketId, false);
+                    sendMessage(webSocket, { type: "initSend", socket_id: data.socketId });
+
+                    break;
+
+                case "initSend":
+                    console.log("INIT SEND " + data.socketId);
+                    addPeer(data.socketId, true);
+                    break;
+
+                case "removePeer":
+                    console.log("Removing peer " + data.socketId);
+                    removePeer(data.socketId);
+                    break;
+
+                case "signal":
+                    console.log(data.signal);
+                    if (peerConnections[data.socketId]) {
+                        peerConnections[data.socketId].signal(data.signal);
+                    }
+                    break;
+                case "mouse_info":
+                    console.log(data);
+
+                    break;
+                // case "GroupNumber":
+                //     $("#GroupNo").html(data.groupNo);
+                //     $("#GroupNoHidden").removeAttr("hidden");
+                //     break;
+                    
+                default:
+                    console.warn("Unknown message type:", data.type);
+            }
+        }
+
+        /**
+    /**
+     * Removes a peer connection and its associated video element
+     *  {string} socketId - The socket ID of the peer to remove
+     */
+    function removePeer(socketId) {
+        console.log("socket video must be removed");
+        let videoElement = document.getElementById("client_"+socketId.toString());
+        if (videoElement) {
+            const tracks = videoElement.srcObject.getTracks();
+            tracks.forEach(track => track.stop());
+            videoElement.srcObject = null;
+            videoElement.parentNode.removeChild(videoElement);
+        }
+        if (peerConnections[socketId]) peerConnections[socketId].destroy();
+        delete peerConnections[socketId];
+    }
+    function remove_local(){
+
+        var localvideoElement = document.querySelector('[data-currentclient]');
+        const tracks = localvideoElement.srcObject.getTracks();
+        tracks.forEach(track => track.stop());
+        localvideoElement.srcObject = null;
+        localvideoElement.parentNode.removeChild(localvideoElement);
+        alert("Sorry But You Did Logged In , In Another Session")
+    }
+
+    /**
+     * Opens the Picture-in-Picture mode for the given video element
+     *  {HTMLVideoElement} videoElement - The video element to open in Picture-in-Picture mode
+     */
+    function openPictureInPicture(videoElement) {
+        console.log('Opening Picture-in-Picture');
+        videoElement.requestPictureInPicture();
+    }
+           // Attach event handlers dynamically to video elements with IDs starting with "client_"
+
+
+          $(document).on('mousemove mousedown mouseenter', 'video[id^="client_"]', function (event) {
+ 
+          
+   
+
+        var targetElement = $(this);
+
+
+        // Get the position of the mouse relative to the target element
+        var offset = targetElement.offset();
+        var mouseX = event.pageX - offset.left;
+        var mouseY = event.pageY - offset.top;
+
+        // Determine if the mouse is pressed and which button
+        var isMouseDown = (event.type === 'mousedown');
+        var mouseButton = null;
+
+        if (event.type === 'mousedown') {
+            switch (event.button) {
+                case 0:
+                    mouseButton = 'left';
+                    break;
+                case 1:
+                    mouseButton = 'middle';
+                    break;
+                case 2:
+                    mouseButton = 'right';
+                    break;
+                default:
+                    mouseButton = 'unknown';
+                    break;
+            }
+        }
+
+        // Get additional properties for MouseInfo
+        var rect = targetElement[0].getBoundingClientRect();
+        var screenWidth = window.screen.width;
+        var screenHeight = window.screen.height;
+        var windowScrollX = window.scrollX;
+        var windowScrollY = window.scrollY;
+
+        // Build the mouse information
+        var mouseInfoArray = [];
+        mouseInfoArray.push('"type": "mouse_info",');
+        mouseInfoArray.push('"element_id": "' + targetElement.attr('id') + '",');
+        mouseInfoArray.push('"element_tag": "' + targetElement.prop('tagName').toLowerCase() + '",');
+        mouseInfoArray.push('"mouse_x": "' + mouseX.toString() + '",');
+        mouseInfoArray.push('"mouse_y": "' + mouseY.toString() + '",');
+        mouseInfoArray.push('"mousedown": "' + isMouseDown.toString() + '",');
+        mouseInfoArray.push('"button": "' + mouseButton + '",');
+        mouseInfoArray.push('"max_width": "' + targetElement.width().toString() + '",');
+        mouseInfoArray.push('"max_height": "' + targetElement.height().toString() + '",');
+        mouseInfoArray.push('"div_rendered_width_px": "' + rect.width.toString() + '",');
+        mouseInfoArray.push('"div_rendered_height_px": "' + rect.height.toString() + '",');
+        mouseInfoArray.push('"screen_width_px": "' + screenWidth.toString() + '",');
+        mouseInfoArray.push('"screen_height_px": "' + screenHeight.toString() + '",');
+        mouseInfoArray.push('"rect_width": "' + rect.width.toString() + '",');
+        mouseInfoArray.push('"rect_height": "' + rect.height.toString() + '",');
+        mouseInfoArray.push('"rect_left": "' + rect.left.toString() + '",');
+        mouseInfoArray.push('"rect_top": "' + rect.top.toString() + '",');
+        mouseInfoArray.push('"window_x": "' + windowScrollX.toString() + '",');
+        mouseInfoArray.push('"window_y": "' + windowScrollY.toString() + '",');
+        mouseInfoArray.push('"event_type": "' + event.type + '"');
+
+        // Join the array into a single string
+        var mouseInformation = '{' + mouseInfoArray.join(', ') + '}';
+
+        // Send the mouse information over WebSocket
+        sendMessage(webSocket, mouseInformation);
+
+   
+    });
+
+
+
+           $(document).on('mouseenter', 'video[id^="client_"]', function (event) {
+        var targetElement = $(this);
+        let isMouseOnElement = true;
+        let keysPressed = {};  // Initialize keysPressed inside the mouseenter handler
+        var keyInfoArray = [];
+
+        // Function to log key event data in array format
+        function logKeyEventData(event, action) {
+            keyInfoArray.push('"element_id": "' + targetElement.attr('id') + '",');
+            keyInfoArray.push('"type": "key_info",');
+            keyInfoArray.push('"action": "' + action + '",');
+            keyInfoArray.push('"key_strokes": "' + event.key + '",');
+            keyInfoArray.push('"key_number_code": "' + event.keyCode + '"');
+            keyInfoArray.push('"event_type": "' + action + '"');
+            // Log the key event data (can also send via WebSocket here)
+            console.log('Key event data:', '{' + keyInfoArray.join(', ') + '}');
+        }
+
+        // Listen for keydown events when mouse is on the video
+        $(document).on('keydown', function(event) {
+            if (isMouseOnElement && !keysPressed[event.key]) { // Only log the key once if it's not already logged
+                keysPressed[event.key] = true;  // Mark the key as pressed
+                logKeyEventData(event, 'keydown'); // Log the key press
+                        var keyInfoArray_info = '{' + keyInfoArray.join(', ') + '}';
+
+                // Send the mouse information over WebSocket
+                    sendMessage(webSocket, keyInfoArray_info);
+                                        keyInfoArray =[];
+
+            }
+        });
+
+        // Listen for keyup events when mouse is on the video
+        $(document).on('keyup', function(event) {
+            if (isMouseOnElement && keysPressed[event.key]) { // Only log the key once if it's already pressed
+                keysPressed[event.key] = false; // Mark the key as released
+                //logKeyEventData(event, 'keyup'); // Log the key release
+            }
+        });
+
+        // Set up an interval to continuously log key data while the mouse is over the element
+        const intervalId = setInterval(function() {
+            if (isMouseOnElement) {
+                // No continuous logging here, we only log when a key is pressed or released
+            }
+        }, 100); // Adjust interval as needed (e.g., every 100ms)
+
+        // Stop listening when mouse leaves the video element
+        $(targetElement).on('mouseleave', function() {
+            // Stop keydown and keyup listeners
+            $(document).off('keydown keyup');
+
+            // Clear the interval
+            clearInterval(intervalId);
+
+            // Reset the keysPressed dictionary and the flag
+            keysPressed = {};
+            isMouseOnElement = false;
+        });
+    });
+
+
+    });
+        
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+</script>
+

@@ -1,0 +1,46 @@
+﻿@model MonitorMultiplePeersRTC.Models.UserRTCModel.UserRTCModel
+
+@{
+    ViewData["Title"] = "Signup";
+}
+
+<div class="container mt-5">
+    <h2>Signup</h2>
+    <p class="text-danger">@ViewBag.ErrorMessage</p>
+    <form asp-action="Signup" method="post" class="mt-4">
+        <div class="mb-3">
+            <label asp-for="Name" class="form-label">Name</label>
+            <span style="font-weight: lighter; color:red">*</span>
+
+            <input asp-for="Name" class="form-control" />
+            <span asp-validation-for="Name" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Email" class="form-label">Email
+                <span style="font-weight: lighter; color:red">*</span>
+
+            </label>
+            <input asp-for="Email" class="form-control" />
+            <span asp-validation-for="Email" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Password" class="form-label">Password
+                 <span style="font-weight: lighter; color:red">*</span>
+
+
+            </label>
+            <input asp-for="Password" class="form-control" type="password" />
+            <span asp-validation-for="Password" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="my_unique_number" class="form-label">
+                ID <span style="font-weight: lighter;">(Optional)</span>
+            </label>
+            <input asp-for="my_unique_number" class="form-control" placeholder="Optional ID" />
+            <span asp-validation-for="my_unique_number" class="text-danger"></span>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Sign Up</button>
+        <a class="btn btn-link" href="@Url.Action("Login", "Home")">Already have an account? Login</a>
+    </form>
+</div>

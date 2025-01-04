@@ -1,0 +1,24 @@
+[ req ]
+default_bits       = 2048
+default_keyfile    = privkey.pem
+distinguished_name  = req_distinguished_name
+req_extensions      = v3_req
+prompt              = no
+
+[ req_distinguished_name ]
+countryName         = US
+stateOrProvinceName = California
+localityName        = San Francisco
+organizationName    = MonitorTC
+commonName          = *.monitortc.com
+
+[ v3_req ]
+basicConstraints    = CA:FALSE
+keyUsage            = digitalSignature, keyEncipherment
+subjectAltName      = @alt_names
+
+[ alt_names ]
+DNS.1 = www.monitortc.com
+DNS.2 = *.monitortc.com
+DNS.3 = monitortc.com
+IP.1  = 192.168.1.2

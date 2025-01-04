@@ -1,0 +1,18 @@
+[
+  {
+    "ContainingType": "MonitorMultiplePeersRTC.Controllers.authController",
+    "Method": "Login",
+    "RelativePath": "api/auth/login",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "loginRequest",
+        "Type": "MonitorMultiplePeersRTC.Controllers.LoginRequest",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  }
+]
